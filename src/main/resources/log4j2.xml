@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration status = "WARN">
+    <Appenders>
+        <Console name = "LogToCon" target = "SYSTEM_OUT">
+            <PatternLayout pattern = "%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+        <Console name="ErrLogToCon" target="SYSTEM_OUT">
+            <PatternLayout pattern = "%d{yyyy-MM-dd HH:mm:ss} [%-6p] [%t] %c{3} %C{3}.%M(%F:%L) - %m%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level = "debug">
+            <AppenderRef ref = "LogToCon" level = "info" />
+            <AppenderRef ref = "ErrLogToCon" level = "error" />
+        </Root>
+    </Loggers>
+</Configuration>
