@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-@ToString(includeFieldNames = true)
+@ToString()
 public class Request {
     private final static Logger myLogger = LogManager.getLogger(Request.class);
     private final static byte[] LINE_DELIMITER = new byte[]{'\r', '\n'};
