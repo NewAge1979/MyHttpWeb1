@@ -4,17 +4,26 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.example.Server.Handlers.Handler;
+import org.example.Server.Request.Request;
+import org.example.Server.Request.RequestMethod;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server extends Thread {
-    private final List<String> validPaths = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
+    @Setter(AccessLevel.PUBLIC)
+    private List<String> validPaths;
     private final static Logger myLogger = LogManager.getLogger(Server.class);
     @Setter(AccessLevel.PUBLIC)
     private int portNumber;
@@ -22,6 +31,7 @@ public class Server extends Thread {
     private int threadPoolSize;
     private static Server instance = null;
     private ExecutorService myThreadPool;
+    private final Map<RequestMethod, Map<String, Handler>> handlers = new ConcurrentHashMap<>();
 
     private Server() {
     }
@@ -35,6 +45,52 @@ public class Server extends Thread {
             }
         }
         return instance;
+    }
+
+    public void addHandler(RequestMethod method, String path, Handler handler) {
+        Map<String, Handler> map = new ConcurrentHashMap<>();
+        if (handlers.containsKey(method)) {
+            map = handlers.get(method);
+        }
+        map.put(path, handler);
+        handlers.put(method, map);
+    }
+
+    public void runHandler(Request myRequestObj, BufferedOutputStream myResponse) {
+        Handler handler = handlers.get(myRequestObj.getMethod()).get(myRequestObj.getPath());
+        if (handler == null) {
+            notFound(myResponse);
+        } else {
+            handler.handle(myRequestObj, myResponse);
+        }
+    }
+
+    public void badRequest(BufferedOutputStream myResponse) {
+        try {
+            myResponse.write((
+                    "HTTP/1.1 400 Bad Request\r\n" +
+                            "Content-Length: 0\r\n" +
+                            "Connection: close\r\n" +
+                            "\r\n"
+            ).getBytes());
+            myResponse.flush();
+        } catch (IOException e) {
+            myLogger.error(e.getMessage());
+        }
+    }
+
+    public void notFound(BufferedOutputStream myResponse) {
+        try {
+            myResponse.write((
+                    "HTTP/1.1 404 Bad Request\r\n" +
+                            "Content-Length: 0\r\n" +
+                            "Connection: close\r\n" +
+                            "\r\n"
+            ).getBytes());
+            myResponse.flush();
+        } catch (IOException e) {
+            myLogger.error(e.getMessage());
+        }
     }
 
     @Override
@@ -53,7 +109,7 @@ public class Server extends Thread {
                     while (!Thread.currentThread().isInterrupted()) {
                         SocketChannel clientSocketChannel = serverSocketChannel.accept();
                         if (clientSocketChannel != null) {
-                            Connection myConnection = new Connection(clientSocketChannel.socket(), validPaths);
+                            Connection myConnection = new Connection(clientSocketChannel.socket());
                             myThreadPool.submit(myConnection);
                             myLogger.info("Client connected!");
                         }
