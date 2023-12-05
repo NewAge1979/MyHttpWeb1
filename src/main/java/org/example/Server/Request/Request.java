@@ -40,7 +40,6 @@ public class Request {
     }
 
     public static Request getRequest(byte[] buffer, int read, BufferedInputStream inputStream) {
-        final Server myServer = Server.getInstance();
         final int requestLineEnd = Utils.indexOf(buffer, LINE_DELIMITER, 0, read);
         if (requestLineEnd > -1) {
             String[] requestLineParts = new String(Arrays.copyOf(buffer, requestLineEnd)).split(" ");
