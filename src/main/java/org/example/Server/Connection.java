@@ -8,7 +8,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 
 public class Connection extends Thread {
     private final static Logger myLogger = LogManager.getLogger(Connection.class);

@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Spliterator;
 
 public class Main {
     private final static Logger myLogger = LogManager.getLogger(Main.class);
