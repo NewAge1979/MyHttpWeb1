@@ -14,7 +14,10 @@ import java.util.Scanner;
 
 public class Main {
     private final static Logger myLogger = LogManager.getLogger(Main.class);
-    private static final List<String> validPaths = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
+    private static final List<String> validPaths = List.of(
+            "/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js",
+            "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js"
+    );
 
     public static void main(String[] args) {
         myLogger.info("Program started! To stop the server, enter: \"/stop\".");
@@ -75,47 +78,6 @@ public class Main {
                 });
             }
         }
-                    /*final String requestLine = myRequest.readLine();
-            myLogger.info(requestLine);
-            //myRequest.readLine();
-            final String headers = myRequest.readLine();
-            myLogger.info(String.format("Headers: %s", headers));
-            final String[] requestParts = requestLine.split(" ");
-            if (requestParts.length == 3) {
-                for (int i = 0; i < requestParts.length; i++) {
-                    myLogger.info(String.format("requestParts[%d] = %s", i, requestParts[i]));
-                }
-                final String currentPath = requestParts[1];
-                if (!validPaths.contains(currentPath)) {
-                    myResponse.write((
-                            "HTTP/1.1 404 Not Found\r\n" +
-                                    "Content-Length: 0\r\n" +
-                                    "Connection: close\r\n" +
-                                    "\r\n"
-                    ).getBytes());
-                    myResponse.flush();
-                    myLogger.info("Error 404!");
-                } else {
-                    final Path filePath = Path.of(".", "public", currentPath);
-                    final String mimeType = Files.probeContentType(filePath);
-
-                    if (currentPath.equals("/classic.html")) {
-
-
-                    } else {
-                        final long length = Files.size(filePath);
-                        myResponse.write((
-                                "HTTP/1.1 200 OK\r\n" +
-                                        "Content-Type: " + mimeType + "\r\n" +
-                                        "Content-Length: " + length + "\r\n" +
-                                        "Connection: close\r\n" +
-                                        "\r\n"
-                        ).getBytes());
-                        Files.copy(filePath, myResponse);
-                        myResponse.flush();
-                    }
-                }
-            }*/
         myServer.start();
         Scanner myScanner = new Scanner(System.in);
         while (true) {
