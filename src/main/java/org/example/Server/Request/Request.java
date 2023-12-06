@@ -39,6 +39,9 @@ public class Request {
     @Setter(AccessLevel.PUBLIC)
     @Getter(AccessLevel.PUBLIC)
     private List<NameValuePair> requestParameters;
+    @Setter(AccessLevel.PUBLIC)
+    @Getter(AccessLevel.PUBLIC)
+    private List<NameValuePair> postParameters;
 
     private Request(RequestMethod method, String path, String protocol, List<String> headers) {
         this.method = method;
@@ -76,6 +79,13 @@ public class Request {
                                 final byte[] myBody = inputStream.readNBytes(Integer.parseInt(contentLength.get()));
                                 request.setBody(new String(myBody));
                             }
+                            final Optional<String> contentType = request.getHeader("Content-Type");
+                            if (contentType.isPresent()) {
+                                final String mimeType = contentType.get();
+                                if (mimeType.equals("application/x-www-form-urlencoded")) {
+                                    request.setPostParameters(URLEncodedUtils.parse(request.getBody(), StandardCharsets.UTF_8));
+                                }
+                            }
                         }
                         try {
                             request.setRequestParameters(URLEncodedUtils.parse(new URI(requestLineParts[1]), StandardCharsets.UTF_8));
@@ -109,5 +119,9 @@ public class Request {
 
     public List<String> getRequestParameter(String parameterName) {
         return getParameter(requestParameters, parameterName);
+    }
+
+    public List<String> getPostParameter(String parameterName) {
+        return getParameter(postParameters, parameterName);
     }
 }
