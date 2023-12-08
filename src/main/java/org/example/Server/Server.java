@@ -56,6 +56,7 @@ public class Server extends Thread {
 
     public void runHandler(Request myRequestObj, BufferedOutputStream myResponse) {
         Handler handler = handlers.get(myRequestObj.getMethod()).get(myRequestObj.getPath());
+        //myLogger.info(String.format("Handler: %s", handler.toString()));
         if (handler == null) {
             notFound(myResponse);
         } else {

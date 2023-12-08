@@ -1,5 +1,6 @@
 package org.example.Server;
 
+import org.apache.http.HttpRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.Server.Request.Request;

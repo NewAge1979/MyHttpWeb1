@@ -4,17 +4,26 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.Utils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.http.HttpRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -81,10 +90,22 @@ public class Request {
                             }
                             final Optional<String> contentType = request.getHeader("Content-Type");
                             if (contentType.isPresent()) {
-                                final String mimeType = contentType.get();
-                                if (mimeType.equals("application/x-www-form-urlencoded")) {
+                                final String[] mimeType = contentType.get().split(";");
+                                //myLogger.info(String.format("Mime-Type: %s, Path: %s", mimeType[0], request.getPath()));
+                                if (mimeType[0].equals("application/x-www-form-urlencoded")) {
                                     request.setPostParameters(URLEncodedUtils.parse(request.getBody(), StandardCharsets.UTF_8));
                                 }
+                                if (mimeType[0].equals("multipart/form-data")) {
+                                    /*DiskFileItemFactory factory = new DiskFileItemFactory(1048576, Path.of(".", "tmp").toFile());
+                                    FileUpload upload = new FileUpload(factory);
+                                    try {
+                                        List<FileItem> items = upload.parseRequest((RequestContext) inputStream);
+                                    } catch (FileUploadException e) {
+                                        myLogger.error(e.getMessage());
+                                    }*/
+                                    myLogger.info(inputStream.toString());
+                                }
+                                myLogger.info("=".repeat(100));
                             }
                         }
                         try {
