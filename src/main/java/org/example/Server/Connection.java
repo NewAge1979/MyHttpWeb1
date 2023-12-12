@@ -9,6 +9,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Connection extends Thread {
@@ -36,9 +37,7 @@ public class Connection extends Thread {
                                     myRequestObj.getParts().stream()
                                             .collect(Collectors.groupingBy(FileItem::getFieldName))
                                             .values()
-                                            .stream()
-                                            .filter(x -> x.size() > 1)
-                                            .count() > 0
+                                            .stream().anyMatch(x -> x.size() > 1)
                             )
             ) {
                 myLogger.debug("Bad Request");
@@ -46,11 +45,15 @@ public class Connection extends Thread {
                 myServer.badRequest(myResponse);
                 return;
             }
-            //myLogger.info(myRequestObj.toString());
-            myLogger.info(String.format("Login = \"%s\"", myRequestObj.getPart("login")));
-            myLogger.info(String.format("Password = \"%s\"", myRequestObj.getPart("password")));
-            myLogger.info(String.format("File = \"%s\"", myRequestObj.getPart("foto")));
-            myLogger.info(myRequestObj.getParts().toString());
+            final Optional<String> contentType = myRequestObj.getHeader("Content-Type");
+            if (contentType.isPresent() && contentType.get().startsWith("multipart/form-data")) {
+                myLogger.info(String.format("Login = \"%s\"", myRequestObj.getPart("login")));
+                myLogger.info(String.format("Password = \"%s\"", myRequestObj.getPart("password")));
+                myLogger.info(String.format("File = \"%s\"", myRequestObj.getPart("foto")));
+                myLogger.info(myRequestObj.getParts().toString());
+            } else {
+                myLogger.info(myRequestObj.toString());
+            }
             Server.getInstance().runHandler(myRequestObj, myResponse);
         } catch (IOException e) {
             myLogger.error(String.format("Error message: %s", e.getMessage()));

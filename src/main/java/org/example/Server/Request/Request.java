@@ -170,7 +170,7 @@ public class Request {
             }
 
             @Override
-            public InputStream getInputStream() throws IOException {
+            public InputStream getInputStream() {
                 return new ByteArrayInputStream(request.getBody().getBytes(StandardCharsets.UTF_8));
             }
         };

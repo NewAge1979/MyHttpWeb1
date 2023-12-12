@@ -18,7 +18,7 @@ public class Main {
             "/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js",
             "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js", "/post.html", "/mult.html"
     );
-    private final static int PORT_NUMBER = 8080;
+    private final static int PORT_NUMBER = 9999;
     private final static int POOL_SIZE = 64;
 
     public static void main(String[] args) {
