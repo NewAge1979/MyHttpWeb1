@@ -4,22 +4,20 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.fileupload.*;
-import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUpload;
+import org.apache.commons.fileupload.RequestContext;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.Utils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.http.HttpRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +49,9 @@ public class Request {
     @Setter(AccessLevel.PUBLIC)
     @Getter(AccessLevel.PUBLIC)
     private List<NameValuePair> postParameters;
+    @Setter(AccessLevel.PUBLIC)
+    @Getter(AccessLevel.PUBLIC)
+    private List<FileItem> parts;
 
     private Request(RequestMethod method, String path, String protocol, List<String> headers) {
         this.method = method;
@@ -96,14 +97,17 @@ public class Request {
                                     request.setPostParameters(URLEncodedUtils.parse(request.getBody(), StandardCharsets.UTF_8));
                                 }
                                 if (mimeType[0].equals("multipart/form-data")) {
-                                    /*DiskFileItemFactory factory = new DiskFileItemFactory(1048576, Path.of(".", "tmp").toFile());
-                                    FileUpload upload = new FileUpload(factory);
                                     try {
-                                        List<FileItem> items = upload.parseRequest((RequestContext) inputStream);
-                                    } catch (FileUploadException e) {
+                                        DiskFileItemFactory factory = new DiskFileItemFactory(1048576, Path.of(".", "tmp").toFile());
+                                        FileUpload upload = new FileUpload(factory);
+                                        try {
+                                            request.setParts(upload.parseRequest(request.getRequestContext(request)));
+                                        } catch (Exception e) {
+                                            myLogger.error(e.getMessage());
+                                        }
+                                    } catch (Exception e) {
                                         myLogger.error(e.getMessage());
-                                    }*/
-                                    myLogger.info(inputStream.toString());
+                                    }
                                 }
                                 myLogger.info("=".repeat(100));
                             }
@@ -144,5 +148,45 @@ public class Request {
 
     public List<String> getPostParameter(String parameterName) {
         return getParameter(postParameters, parameterName);
+    }
+
+    private RequestContext getRequestContext(Request request) {
+        return new RequestContext() {
+            @Override
+            public String getCharacterEncoding() {
+                return StandardCharsets.UTF_8.displayName();
+            }
+
+            @Override
+            public String getContentType() {
+                final Optional<String> contentType = request.getHeader("Content-Type");
+                return contentType.orElse(null);
+            }
+
+            @Override
+            public int getContentLength() {
+                final Optional<String> contentLength = request.getHeader("Content-Length");
+                return contentLength.map(Integer::parseInt).orElse(0);
+            }
+
+            @Override
+            public InputStream getInputStream() throws IOException {
+                return new ByteArrayInputStream(request.getBody().getBytes(StandardCharsets.UTF_8));
+            }
+        };
+    }
+
+    public String getPart(String fieldName) {
+        if (parts != null) {
+            Optional<FileItem> item = parts.stream().filter(x -> x.getFieldName().equals(fieldName)).findFirst();
+            if (item.isPresent()) {
+                if (item.get().isFormField()) {
+                    return item.get().getString();
+                } else {
+                    return item.get().getName();
+                }
+            }
+        }
+        return "";
     }
 }

@@ -18,12 +18,14 @@ public class Main {
             "/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js",
             "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js", "/post.html", "/mult.html"
     );
+    private final static int PORT_NUMBER = 8080;
+    private final static int POOL_SIZE = 64;
 
     public static void main(String[] args) {
         myLogger.info("Program started! To stop the server, enter: \"/stop\".");
         Server myServer = Server.getInstance();
-        myServer.setPortNumber(9999);
-        myServer.setThreadPoolSize(64);
+        myServer.setPortNumber(PORT_NUMBER);
+        myServer.setThreadPoolSize(POOL_SIZE);
         myServer.setValidPaths(validPaths);
         for (String validPath : validPaths) {
             if (validPath.equals("/classic.html")) {
