@@ -16,14 +16,16 @@ public class Main {
     private final static Logger myLogger = LogManager.getLogger(Main.class);
     private static final List<String> validPaths = List.of(
             "/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js",
-            "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js", "/post.html"
+            "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js", "/post.html", "/mult.html"
     );
+    private final static int PORT_NUMBER = 9999;
+    private final static int POOL_SIZE = 64;
 
     public static void main(String[] args) {
         myLogger.info("Program started! To stop the server, enter: \"/stop\".");
         Server myServer = Server.getInstance();
-        myServer.setPortNumber(9999);
-        myServer.setThreadPoolSize(64);
+        myServer.setPortNumber(PORT_NUMBER);
+        myServer.setThreadPoolSize(POOL_SIZE);
         myServer.setValidPaths(validPaths);
         for (String validPath : validPaths) {
             if (validPath.equals("/classic.html")) {
@@ -79,6 +81,28 @@ public class Main {
             }
         }
         myServer.addHandler(RequestMethod.POST, "/post.html",(request, response) -> {
+            final Path filePath = Path.of(".", "public", request.getPath());
+            if (Files.exists(filePath)) {
+                try {
+                    final String mimeType = Files.probeContentType(filePath);
+                    final long size = Files.size(filePath);
+                    response.write((
+                            "HTTP/1.1 200 OK\r\n" +
+                                    "Content-Type: " + mimeType + "\r\n" +
+                                    "Content-Length: " + size + "\r\n" +
+                                    "Connection: close\r\n" +
+                                    "\r\n"
+                    ).getBytes());
+                    Files.copy(filePath, response);
+                    response.flush();
+                } catch (IOException e) {
+                    myLogger.error(e.getMessage());
+                }
+            } else {
+                myServer.notFound(response);
+            }
+        });
+        myServer.addHandler(RequestMethod.POST, "/mult.html",(request, response) -> {
             final Path filePath = Path.of(".", "public", request.getPath());
             if (Files.exists(filePath)) {
                 try {
