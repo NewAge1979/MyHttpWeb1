@@ -1,8 +1,10 @@
 package org.example.Server;
 
+import org.apache.http.NameValuePair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.Server.Request.Request;
+import org.example.Server.Request.RequestMethod;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
