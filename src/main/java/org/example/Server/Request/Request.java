@@ -4,15 +4,21 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.Utils;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ToString()
 public class Request {
@@ -30,6 +36,9 @@ public class Request {
     @Getter(AccessLevel.PUBLIC)
     @Setter(AccessLevel.PUBLIC)
     private String body;
+    @Setter(AccessLevel.PUBLIC)
+    @Getter(AccessLevel.PUBLIC)
+    private List<NameValuePair> requestParameters;
 
     private Request(RequestMethod method, String path, String protocol, List<String> headers) {
         this.method = method;
@@ -53,9 +62,10 @@ public class Request {
                                 new String(inputStream.readNBytes(headersEnd - headersStart))
                                         .split("\r\n")
                         );
+                        int endPath = requestLineParts[1].indexOf('?');
                         Request request = new Request(
                                 RequestMethod.valueOf(requestLineParts[0]),
-                                requestLineParts[1],
+                                (endPath == -1 ? requestLineParts[1] : requestLineParts[1].substring(0, endPath)),
                                 requestLineParts[2],
                                 headers
                         );
@@ -66,6 +76,11 @@ public class Request {
                                 final byte[] myBody = inputStream.readNBytes(Integer.parseInt(contentLength.get()));
                                 request.setBody(new String(myBody));
                             }
+                        }
+                        try {
+                            request.setRequestParameters(URLEncodedUtils.parse(new URI(requestLineParts[1]), StandardCharsets.UTF_8));
+                        } catch (URISyntaxException e) {
+                            myLogger.error(e.getMessage());
                         }
                         return request;
                     } catch (IOException e) {
@@ -83,5 +98,16 @@ public class Request {
                 .map(x -> x.substring(x.indexOf(" ")))
                 .map(String::trim)
                 .findFirst();
+    }
+
+    private List<String> getParameter(List<NameValuePair> parameters, String parameterName) {
+        return parameters.stream()
+                .filter(x -> x.getName().equals(parameterName))
+                .map(NameValuePair::getValue)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getRequestParameter(String parameterName) {
+        return getParameter(requestParameters, parameterName);
     }
 }
